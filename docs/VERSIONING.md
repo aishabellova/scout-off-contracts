@@ -214,6 +214,10 @@ not a recomputation, so history values are preserved exactly.
 
 `scripts/upgrade.sh` drives the loop and then verifies through `schema_version`.
 
+## `scripts/upgrade.sh` usage
+
+`./scripts/upgrade.sh --contract <id> --wasm <path> --source <identity>` (`--source` defaults to `$UPGRADE_SOURCE`). The WASM is uploaded once; if the upgraded contract exposes no `schema_version`, migration is skipped and the script exits 0.
+
 ---
 
 ## Deprecations

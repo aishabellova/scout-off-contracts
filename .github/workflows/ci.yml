@@ -145,3 +145,21 @@ jobs:
 
       - name: Run tests
         run: npm test
+
+  check-node-scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '20'
+      - name: Syntax-check Node scripts
+        run: |
+          # `node --check` alone cannot catch structural breakage such as
+          # functions accidentally nested inside another function (issue #1648),
+          # so the Jest smoke test below exercises main() at runtime.
+          for f in scripts/*.js; do
+            node --check "$f"
+          done
+      - name: Run reconcile-indexer smoke test
+        run: npx --yes jest scripts/reconcile-indexer.test.js

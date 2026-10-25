@@ -846,3 +846,6 @@ Quick checklist:
 
 <!-- handsoff-issue-1656 -->
 - #1656: registration: get_player_count's doc comment is attached to get_scout_verification
+
+<!-- handsoff-issue-1666 -->
+- #1666: registration: add direct unit tests for canonicalize_region / canonicalize_position / canonicalize_nationality

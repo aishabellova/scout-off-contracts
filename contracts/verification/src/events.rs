@@ -858,3 +858,34 @@ pub fn reg_cooldown_updated(env: &Env, admin: &Address, old: u64, new: u64) {
         (old, new),
     );
 }
+
+/// Warning emitted when an admin configures a diversity gate that the current
+/// active validator set cannot satisfy (issue #1632). The setting is still
+/// stored — the gate is reachable again once enough validators are active.
+///
+/// topics: (event_name, admin)  data: (gate, required, active_validator_count)
+/// `gate` is `"min_region_quorum"` or `"diversity_config"`.
+#[contractevent(topics = ["diversity_gate_unreachable"], data_format = "vec")]
+pub struct DiversityGateUnreachable {
+    #[topic]
+    pub admin: Address,
+    pub gate: Symbol,
+    pub required: u32,
+    pub active_count: u32,
+}
+
+pub fn diversity_gate_unreachable(
+    env: &Env,
+    admin: &Address,
+    gate: &str,
+    required: u32,
+    active_count: u32,
+) {
+    DiversityGateUnreachable {
+        admin: admin.clone(),
+        gate: Symbol::new(env, gate),
+        required,
+        active_count,
+    }
+    .emit(env);
+}

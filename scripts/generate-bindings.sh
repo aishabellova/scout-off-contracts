@@ -6,14 +6,13 @@ set -euo pipefail
 
 source "$(dirname "$0")/network.sh" "${1:-}"
 # Reference stellar-cli version the generated bindings were last validated
-# against. Keep in sync with: docs/CONTRIBUTING.md and
-# .github/workflows/contract-ci.yml.
+# against. Single source of truth: ci/stellar-cli-version (also read by
+# scripts/install-stellar-cli.sh, which CI uses to install a checksum-verified
+# release binary).
 #
-# This is advisory, not enforced: the upstream `install.sh` always installs
-# the latest release regardless of the tag it is fetched from, and the
-# "Verify ABI function coverage in generated bindings" CI step structurally
-# checks the output against the WASM ABI. A different CLI version only
-# warns — set STRICT_STELLAR_CLI_VERSION=1 to make it fatal.
+# A different locally installed CLI version only warns — set
+# STRICT_STELLAR_CLI_VERSION=1 to make it fatal. The "Verify ABI function
+# coverage in generated bindings" CI step structurally checks the output.
 # shellcheck source=lib/check-stellar-cli.sh
 source "$(dirname "${BASH_SOURCE[0]}")/lib/check-stellar-cli.sh"
 REFERENCE_STELLAR_CLI_VERSION="$PINNED_STELLAR_CLI_VERSION"

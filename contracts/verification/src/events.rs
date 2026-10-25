@@ -55,6 +55,18 @@ pub struct ValidatorRestored {
     pub wallet: Address,
 }
 
+/// Emitted by `set_validator_specializations`; `new` replaces the validator's
+/// tag list and `old` is kept for audit history. Data is published as the
+/// tuple `(wallet, old, new)` documented in docs/EVENT_REFERENCE.md.
+#[contractevent(topics = ["validator_specialization_updated"], data_format = "vec")]
+pub struct ValidatorSpecializationUpdated {
+    #[topic]
+    pub admin: Address,
+    pub wallet: Address,
+    pub old: soroban_sdk::Vec<String>,
+    pub new: soroban_sdk::Vec<String>,
+}
+
 /// Emitted by `transfer_validator`.
 #[contractevent]
 pub struct ValidatorTransferred {
@@ -381,6 +393,22 @@ pub fn validator_transferred(
         admin: admin.clone(),
         old_wallet: old_wallet.clone(),
         new_wallet: new_wallet.clone(),
+    }
+    .emit(env);
+}
+
+pub fn validator_specialization_updated(
+    env: &Env,
+    admin: &Address,
+    wallet: &Address,
+    old: &soroban_sdk::Vec<String>,
+    new: &soroban_sdk::Vec<String>,
+) {
+    ValidatorSpecializationUpdated {
+        admin: admin.clone(),
+        wallet: wallet.clone(),
+        old: old.clone(),
+        new: new.clone(),
     }
     .emit(env);
 }

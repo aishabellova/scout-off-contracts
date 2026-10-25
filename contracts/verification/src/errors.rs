@@ -220,6 +220,8 @@ pub enum VerificationError {
     /// The registration contract is not wired (`set_registration_contract`);
     /// milestone commits fail closed rather than skipping the player check.
     RegistrationNotConfigured = 62,
+    /// Wiring target failed the `contract_kind`/`version` handshake (#1610).
+    InvalidPeerContract = 63,
 }
 
 impl AdminError for VerificationError {

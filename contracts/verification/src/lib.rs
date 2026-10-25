@@ -387,6 +387,9 @@ impl VerificationContract {
         if env.storage().instance().has(&DataKey::ProgressContractSet) {
             return Err(VerificationError::AlreadyConfigured);
         }
+        if !scoutchain_shared_types::verify_peer(&env, &progress_contract, "progress", 0) {
+            return Err(VerificationError::InvalidPeerContract);
+        }
         let epoch = write_wiring_link(
             &env,
             &DataKey::ProgressContract,
@@ -408,6 +411,9 @@ impl VerificationContract {
         progress_contract: Address,
     ) -> Result<(), VerificationError> {
         let admin = require_admin(&env, &DataKey::Admin, ADMIN_BUMP_LEDGERS)?;
+        if !scoutchain_shared_types::verify_peer(&env, &progress_contract, "progress", 0) {
+            return Err(VerificationError::InvalidPeerContract);
+        }
         let epoch = write_wiring_link(
             &env,
             &DataKey::ProgressContract,
@@ -441,6 +447,9 @@ impl VerificationContract {
         {
             return Err(VerificationError::AlreadyConfigured);
         }
+        if !scoutchain_shared_types::verify_peer(&env, &reg_contract, "registration", 0) {
+            return Err(VerificationError::InvalidPeerContract);
+        }
         let epoch = write_wiring_link(
             &env,
             &DataKey::RegistrationContract,
@@ -461,6 +470,9 @@ impl VerificationContract {
         reg_contract: Address,
     ) -> Result<(), VerificationError> {
         let admin = require_admin(&env, &DataKey::Admin, ADMIN_BUMP_LEDGERS)?;
+        if !scoutchain_shared_types::verify_peer(&env, &reg_contract, "registration", 0) {
+            return Err(VerificationError::InvalidPeerContract);
+        }
         let epoch = write_wiring_link(
             &env,
             &DataKey::RegistrationContract,
@@ -3383,6 +3395,11 @@ impl VerificationContract {
     /// Returns the deployed crate version (from Cargo.toml at build time).
     pub fn version(env: Env) -> String {
         String::from_str(&env, CONTRACT_VERSION)
+    }
+
+    /// Stable contract identifier used by the on-chain wiring handshake (#1610).
+    pub fn contract_kind(env: Env) -> soroban_sdk::Symbol {
+        soroban_sdk::Symbol::new(&env, "verification")
     }
 
     /// Returns the compile-time protocol limits clients need to pre-validate

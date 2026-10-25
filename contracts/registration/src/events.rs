@@ -245,6 +245,24 @@ pub fn scout_verified(env: &Env, scout_id: u64, wallet: &Address) {
     .publish(env);
 }
 
+/// Emitted by `unverify_scout`.
+#[contractevent]
+pub struct ScoutUnverified {
+    #[topic]
+    pub wallet: Address,
+    pub scout_id: u64,
+    pub admin: Address,
+}
+
+pub fn scout_unverified(env: &Env, scout_id: u64, wallet: &Address, admin: &Address) {
+    ScoutUnverified {
+        wallet: wallet.clone(),
+        scout_id,
+        admin: admin.clone(),
+    }
+    .emit(env);
+}
+
 /// Emitted before `update_current_contract_wasm` — attributed to the old code version.
 /// topics: (event_name, admin)  data: new_wasm_hash
 pub fn contract_upgraded(env: &Env, admin: &Address, new_wasm_hash: &BytesN<32>) {

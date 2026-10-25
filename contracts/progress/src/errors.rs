@@ -92,6 +92,8 @@ pub enum ProgressError {
     SeedLevelDiscontinuity = 25,
     /// `admin_seed_history` entry's timestamp or ledger precedes the previous entry.
     SeedTimestampRegression = 26,
+    /// Wiring target failed the `contract_kind`/`version` handshake (#1610).
+    InvalidPeerContract = 27,
 }
 
 impl AdminError for ProgressError {

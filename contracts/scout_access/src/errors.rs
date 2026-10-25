@@ -171,6 +171,8 @@ pub enum ScoutAccessError {
     TrialOffersDisabled = 47,
     /// The payment token's `decimals()` is not 7; fee bounds assume XLM stroops.
     UnsupportedTokenDecimals = 48,
+    /// Wiring target failed the `contract_kind`/`version` handshake (#1610).
+    InvalidPeerContract = 49,
 }
 
 impl AdminError for ScoutAccessError {

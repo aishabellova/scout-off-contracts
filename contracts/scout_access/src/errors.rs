@@ -166,6 +166,9 @@ pub enum ScoutAccessError {
     /// wallet (never registered, or erased via `deregister_scout`). Fails
     /// closed so a deregistered scout cannot keep acting (issue #1641).
     ScoutNotRegistered = 46,
+    /// `log_trial_offer` was called while `trial_offer_escrow_stroops` is 0
+    /// (trial offers disabled).
+    TrialOffersDisabled = 47,
 }
 
 impl AdminError for ScoutAccessError {

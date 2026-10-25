@@ -216,6 +216,10 @@ pub enum VerificationError {
     // ── Cooldown config (issue #1633) ──
     /// Cooldown value exceeds the maximum allowed (7 days).
     InvalidCooldown = 61,
+    // ── Registration wiring (issue #1622) ──
+    /// The registration contract is not wired (`set_registration_contract`);
+    /// milestone commits fail closed rather than skipping the player check.
+    RegistrationNotConfigured = 62,
 }
 
 impl AdminError for VerificationError {

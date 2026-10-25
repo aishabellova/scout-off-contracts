@@ -1,5 +1,16 @@
-use soroban_sdk::{contractevent, Address, BytesN, Env, String, Symbol};
 use crate::types::DiversityConfig;
+use soroban_sdk::{contractevent, Address, BytesN, Env, String, Symbol};
+
+pub const CONTRACT_UPGRADED: &str = "contract_upgraded";
+pub const MIGRATION_WINDOW_OPENED: &str = "migration_window_opened";
+pub const MIGRATION_WINDOW_CLOSED: &str = "migration_window_closed";
+pub const MILESTONE_THRESHOLD_UPDATED: &str = "milestone_threshold_updated";
+pub const MILESTONE_THRESHOLD_UNREACHABLE: &str = "milestone_threshold_unreachable";
+pub const JURY_CONFIG_UPDATED: &str = "jury_config_updated";
+pub const DIVERSITY_CONFIG_UPDATED: &str = "diversity_config_updated";
+pub const MIN_REGION_QUORUM_UPDATED: &str = "min_region_quorum_updated";
+pub const VOTING_WINDOW_SECS_UPDATED: &str = "voting_window_secs_updated";
+pub const REG_COOLDOWN_UPDATED: &str = "reg_cooldown_updated";
 
 // ── Typed contract events (issue #1370) ──────────────────────────────────────
 
@@ -180,7 +191,7 @@ pub struct AttestationWindowExpired {
 }
 
 /// Emitted when a revoked validator's pending votes are invalidated.
-#[contractevent]
+#[contractevent(topics = ["validator_votes_invalidated"])]
 pub struct ValidatorPendingVotesInvalidated {
     #[topic]
     pub admin: Address,
@@ -314,7 +325,7 @@ pub fn contract_initialized(env: &Env, admin: &Address) {
     ContractInitialized {
         admin: admin.clone(),
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn milestone_approved(
@@ -332,7 +343,7 @@ pub fn milestone_approved(
         description: description.clone(),
         evidence_hash: evidence_hash.clone(),
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn validator_registered(env: &Env, wallet: &Address, credentials: &String) {
@@ -340,7 +351,7 @@ pub fn validator_registered(env: &Env, wallet: &Address, credentials: &String) {
         wallet: wallet.clone(),
         credentials: credentials.clone(),
     }
-    .emit(env);
+    .publish(env);
 }
 
 /// topics: (event_name, wallet)  data: (public_key, rotated_from)
@@ -351,7 +362,10 @@ pub fn attestation_key_registered(
     rotated_from: &Option<soroban_sdk::BytesN<32>>,
 ) {
     env.events().publish(
-        (Symbol::new(env, "attestation_key_registered"), wallet.clone()),
+        (
+            Symbol::new(env, "attestation_key_registered"),
+            wallet.clone(),
+        ),
         (public_key.clone(), rotated_from.clone()),
     );
 }
@@ -363,7 +377,7 @@ pub fn validator_revoked(env: &Env, admin: &Address, wallet: &Address, reason: &
         wallet: wallet.clone(),
         reason: reason.clone(),
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn validator_revoked_for_cause(env: &Env, admin: &Address, wallet: &Address, reason: &String) {
@@ -372,7 +386,7 @@ pub fn validator_revoked_for_cause(env: &Env, admin: &Address, wallet: &Address,
         wallet: wallet.clone(),
         reason: reason.clone(),
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn validator_restored(env: &Env, admin: &Address, wallet: &Address) {
@@ -380,7 +394,7 @@ pub fn validator_restored(env: &Env, admin: &Address, wallet: &Address) {
         admin: admin.clone(),
         wallet: wallet.clone(),
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn validator_transferred(
@@ -394,7 +408,7 @@ pub fn validator_transferred(
         old_wallet: old_wallet.clone(),
         new_wallet: new_wallet.clone(),
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn validator_specialization_updated(
@@ -417,28 +431,28 @@ pub fn contract_paused(env: &Env, admin: &Address) {
     ContractPaused {
         admin: admin.clone(),
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn contract_unpaused(env: &Env, admin: &Address) {
     ContractUnpaused {
         admin: admin.clone(),
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn approve_milestone_paused(env: &Env, admin: &Address) {
     ApproveMilestonePaused {
         admin: admin.clone(),
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn approve_milestone_unpaused(env: &Env, admin: &Address) {
     ApproveMilestoneUnpaused {
         admin: admin.clone(),
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn progress_contract_updated(env: &Env, admin: &Address, progress_contract: &Address) {
@@ -446,7 +460,7 @@ pub fn progress_contract_updated(env: &Env, admin: &Address, progress_contract: 
         admin: admin.clone(),
         progress_contract: progress_contract.clone(),
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn wiring_updated(
@@ -462,7 +476,7 @@ pub fn wiring_updated(
         new_address: new_address.clone(),
         new_epoch,
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn milestone_disputed(
@@ -478,7 +492,7 @@ pub fn milestone_disputed(
         milestone_index,
         reason: reason.clone(),
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn dispute_resolved(
@@ -494,7 +508,7 @@ pub fn dispute_resolved(
         milestone_index,
         upheld,
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn level_advancement_skipped(env: &Env, player_id: u64, reason: &String) {
@@ -502,7 +516,7 @@ pub fn level_advancement_skipped(env: &Env, player_id: u64, reason: &String) {
         player_id,
         reason: reason.clone(),
     }
-    .emit(env);
+    .publish(env);
 }
 
 /// Emitted when diversity gating blocks level advancement (the milestone is
@@ -528,7 +542,7 @@ pub fn level_advancement_deferred(
 /// deployment.  In production this indicates a missing wiring step and the
 /// indexer should alert on it.  The milestone is still persisted.
 pub fn progress_contract_not_set(env: &Env, player_id: u64) {
-    ProgressContractNotSet { player_id }.emit(env);
+    ProgressContractNotSet { player_id }.publish(env);
 }
 
 /// topics: (event_name, validator)  data: (player_id, evidence_hash, vote_count, threshold, description_hash)
@@ -549,7 +563,7 @@ pub fn attestation_recorded(
         threshold,
         description_hash: description_hash.clone(),
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn attestation_window_expired(
@@ -563,7 +577,7 @@ pub fn attestation_window_expired(
         evidence_hash: evidence_hash.clone(),
         new_round,
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn validator_pending_votes_invalidated(
@@ -577,7 +591,7 @@ pub fn validator_pending_votes_invalidated(
         wallet: wallet.clone(),
         invalidated_count,
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn attestation_round_aborted(
@@ -603,7 +617,7 @@ pub fn progress_call_failed(env: &Env, player_id: u64, error_code: u32) {
         player_id,
         error_code,
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn validator_record_restored(env: &Env, admin: &Address, wallet: &Address) {
@@ -611,7 +625,7 @@ pub fn validator_record_restored(env: &Env, admin: &Address, wallet: &Address) {
         admin: admin.clone(),
         wallet: wallet.clone(),
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn milestone_record_restored(env: &Env, admin: &Address, player_id: u64, index: u32) {
@@ -620,7 +634,7 @@ pub fn milestone_record_restored(env: &Env, admin: &Address, player_id: u64, ind
         player_id,
         index,
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn milestone_flagged_for_rereview(
@@ -634,21 +648,16 @@ pub fn milestone_flagged_for_rereview(
         player_id,
         milestone_index,
     }
-    .emit(env);
+    .publish(env);
 }
 
-pub fn milestone_flag_cleared(
-    env: &Env,
-    reviewer: &Address,
-    player_id: u64,
-    milestone_index: u32,
-) {
+pub fn milestone_flag_cleared(env: &Env, reviewer: &Address, player_id: u64, milestone_index: u32) {
     MilestoneFlagCleared {
         reviewer: reviewer.clone(),
         player_id,
         milestone_index,
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn revocation_cascade_complete(env: &Env, validator: &Address, total_flagged: u32) {
@@ -656,7 +665,7 @@ pub fn revocation_cascade_complete(env: &Env, validator: &Address, total_flagged
         validator: validator.clone(),
         total_flagged,
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn revocation_cascade_continued(
@@ -670,7 +679,7 @@ pub fn revocation_cascade_continued(
         next_cursor,
         flagged_this_call,
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn admin_transfer_proposed(env: &Env, old_admin: &Address, new_admin: &Address) {
@@ -678,7 +687,7 @@ pub fn admin_transfer_proposed(env: &Env, old_admin: &Address, new_admin: &Addre
         old_admin: old_admin.clone(),
         new_admin: new_admin.clone(),
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn admin_transferred(env: &Env, old_admin: &Address, new_admin: &Address) {
@@ -686,7 +695,7 @@ pub fn admin_transferred(env: &Env, old_admin: &Address, new_admin: &Address) {
         old_admin: old_admin.clone(),
         new_admin: new_admin.clone(),
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn dispute_vote_cast(
@@ -702,7 +711,7 @@ pub fn dispute_vote_cast(
         milestone_index,
         for_upheld,
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn dispute_tallied(
@@ -720,7 +729,7 @@ pub fn dispute_tallied(
         votes_for,
         votes_against,
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn player_data_purged(
@@ -736,7 +745,7 @@ pub fn player_data_purged(
         entries_removed,
         more,
     }
-    .emit(env);
+    .publish(env);
 }
 
 /// Emitted before `update_current_contract_wasm` — attributed to the old code version.

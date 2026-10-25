@@ -169,6 +169,8 @@ pub enum ScoutAccessError {
     /// `log_trial_offer` was called while `trial_offer_escrow_stroops` is 0
     /// (trial offers disabled).
     TrialOffersDisabled = 47,
+    /// The payment token's `decimals()` is not 7; fee bounds assume XLM stroops.
+    UnsupportedTokenDecimals = 48,
 }
 
 impl AdminError for ScoutAccessError {

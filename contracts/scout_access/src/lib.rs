@@ -245,10 +245,7 @@ impl ScoutAccessContract {
     ) -> Result<(), ScoutAccessError> {
         // Probe the supplied xlm_token address to confirm it is a deployed
         // token contract before we accept it.
-        match token::Client::new(&env, &xlm_token).try_decimals() {
-            Ok(_) => {}
-            Err(_) => return Err(ScoutAccessError::InvalidInput),
-        }
+        Self::require_xlm_decimals(&env, &xlm_token)?;
         Self::validate_fee_config(&fee_config)?;
         Self::init_state(&env, &admin, &xlm_token, &fee_config);
         Ok(())
@@ -272,15 +269,22 @@ impl ScoutAccessContract {
         // otherwise only surface as an opaque failure on the first
         // subscribe() call's transfer. The probe is read-only and
         // side-effect-free.
-        match token::Client::new(&env, &xlm_token).try_decimals() {
-            Ok(_) => {}
-            Err(_) => return Err(ScoutAccessError::InvalidInput),
-        }
+        Self::require_xlm_decimals(&env, &xlm_token)?;
         admin.require_auth();
         Self::validate_fee_config(&fee_config)?;
         Self::bump_instance_ttl(&env);
         Self::init_state(&env, &admin, &xlm_token, &fee_config);
         Ok(())
+    }
+
+    /// #1621: every fee bound is expressed in 7-decimal XLM stroops, so any
+    /// token with a different precision is rejected at initialization.
+    fn require_xlm_decimals(env: &Env, token: &Address) -> Result<(), ScoutAccessError> {
+        match token::Client::new(env, token).try_decimals() {
+            Ok(Ok(7)) => Ok(()),
+            Ok(Ok(_)) => Err(ScoutAccessError::UnsupportedTokenDecimals),
+            _ => Err(ScoutAccessError::InvalidInput),
+        }
     }
 
     fn init_state(env: &Env, admin: &Address, xlm_token: &Address, fee_config: &FeeConfig) {
@@ -2998,11 +3002,7 @@ impl ScoutAccessContract {
         let now = env.ledger().timestamp();
         for idx in 0..trial_count {
             let ek = DataKey::TrialEscrow(player_id, idx);
-            if let Some(escrow) = env
-                .storage()
-                .persistent()
-                .get::<DataKey, TrialEscrow>(&ek)
-            {
+            if let Some(escrow) = env.storage().persistent().get::<DataKey, TrialEscrow>(&ek) {
                 if now <= escrow.expires_at && escrow.amount > 0 {
                     return Err(ScoutAccessError::TrialOfferNotFound);
                 }
@@ -3069,28 +3069,6 @@ impl ScoutAccessContract {
         Ok((next_cursor, more))
     }
 
-    pub fn health(env: Env) -> ContractHealth {
-        let initialized = env
-            .storage()
-            .instance()
-            .get::<DataKey, bool>(&DataKey::Initialized)
-            .unwrap_or(false);
-        let paused = env
-            .storage()
-            .instance()
-            .get::<DataKey, bool>(&DataKey::Paused)
-            .unwrap_or(false);
-        let pay_to_contact_paused = env
-            .storage()
-            .instance()
-            .get::<DataKey, bool>(&DataKey::PausedPayToContact)
-            .unwrap_or(false);
-        ContractHealth {
-            initialized,
-            paused,
-            pay_to_contact_paused,
-        }
-    }
     /// Returns all (player_id, trial_index) tuples for every trial offer logged
     /// by `scout`. The returned Vec is in insertion order (oldest first).
     ///
@@ -3860,11 +3838,7 @@ mod tests {
                 &env,
                 (
                     contract_id.clone(),
-                    (
-                        Symbol::new(&env, "ContractInitialized"),
-                        admin.clone()
-                    )
-                        .into_val(&env),
+                    (Symbol::new(&env, "ContractInitialized"), admin.clone()).into_val(&env),
                     admin.clone().into_val(&env)
                 )
             ]
@@ -4163,20 +4137,12 @@ mod tests {
                 &env,
                 (
                     contract_id.clone(),
-                    (
-                        Symbol::new(&env, "EvidenceAccessGranted"),
-                        scout.clone()
-                    )
-                        .into_val(&env),
+                    (Symbol::new(&env, "EvidenceAccessGranted"), scout.clone()).into_val(&env),
                     (42u64, SubscriptionTier::Elite).into_val(&env)
                 ),
                 (
                     contract_id.clone(),
-                    (
-                        Symbol::new(&env, "PlayerContacted"),
-                        scout.clone()
-                    )
-                        .into_val(&env),
+                    (Symbol::new(&env, "PlayerContacted"), scout.clone()).into_val(&env),
                     (42u64, default_fees().contact_fee_stroops).into_val(&env)
                 )
             ]
@@ -4741,11 +4707,7 @@ mod tests {
                 &env,
                 (
                     contract_id.clone(),
-                    (
-                        Symbol::new(&env, "AdminTransferred"),
-                        old_admin.clone(),
-                    )
-                        .into_val(&env),
+                    (Symbol::new(&env, "AdminTransferred"), old_admin.clone(),).into_val(&env),
                     new_admin.clone().into_val(&env),
                 )
             ]
@@ -4830,11 +4792,7 @@ mod tests {
                 &env,
                 (
                     client.address.clone(),
-                    (
-                        Symbol::new(&env, "ContractPaused"),
-                        admin.clone()
-                    )
-                        .into_val(&env),
+                    (Symbol::new(&env, "ContractPaused"), admin.clone()).into_val(&env),
                     ().into_val(&env)
                 )
             ]
@@ -4848,11 +4806,7 @@ mod tests {
                 &env,
                 (
                     client.address.clone(),
-                    (
-                        Symbol::new(&env, "ContractUnpaused"),
-                        admin.clone()
-                    )
-                        .into_val(&env),
+                    (Symbol::new(&env, "ContractUnpaused"), admin.clone()).into_val(&env),
                     ().into_val(&env)
                 )
             ]
@@ -5551,11 +5505,7 @@ mod tests {
                 &env,
                 (
                     contract_id.clone(),
-                    (
-                        Symbol::new(&env, "ProgressContractUpdated"),
-                        _admin.clone(),
-                    )
-                        .into_val(&env),
+                    (Symbol::new(&env, "ProgressContractUpdated"), _admin.clone(),).into_val(&env),
                     progress_addr.clone().into_val(&env),
                 ),
                 (
@@ -6982,11 +6932,7 @@ mod tests {
                 &env,
                 (
                     contract_id.clone(),
-                    (
-                        Symbol::new(&env, "AutoRenewSet"),
-                        scout.clone()
-                    )
-                        .into_val(&env),
+                    (Symbol::new(&env, "AutoRenewSet"), scout.clone()).into_val(&env),
                     true.into_val(&env),
                 )
             ]

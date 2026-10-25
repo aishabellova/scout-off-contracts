@@ -1,6 +1,6 @@
 use crate::types::MigrationRole;
-use soroban_sdk::{contractevent, Address, BytesN, Env, String, Symbol};
 use scoutchain_shared_types::ProgressLevel;
+use soroban_sdk::{contractevent, Address, BytesN, Env, String, Symbol};
 
 // ── Typed contract events (issue #1370) ──────────────────────────────────────
 //
@@ -167,7 +167,7 @@ pub fn player_registered(env: &Env, player_id: u64, wallet: &Address) {
         wallet: wallet.clone(),
         player_id,
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn scout_registered(env: &Env, scout_id: u64, wallet: &Address) {
@@ -175,7 +175,7 @@ pub fn scout_registered(env: &Env, scout_id: u64, wallet: &Address) {
         wallet: wallet.clone(),
         scout_id,
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn profile_updated(env: &Env, player_id: u64, wallet: &Address) {
@@ -183,7 +183,7 @@ pub fn profile_updated(env: &Env, player_id: u64, wallet: &Address) {
         wallet: wallet.clone(),
         player_id,
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn scout_deregistered(env: &Env, scout_id: u64, wallet: &Address, admin: &Address) {
@@ -208,7 +208,7 @@ pub fn player_deregistered(
         level: level.clone(),
         region: region.clone(),
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn player_deactivated(env: &Env, player_id: u64, admin: &Address) {
@@ -216,7 +216,7 @@ pub fn player_deactivated(env: &Env, player_id: u64, admin: &Address) {
         admin: admin.clone(),
         player_id,
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn player_reactivated(env: &Env, player_id: u64, admin: &Address) {
@@ -224,7 +224,7 @@ pub fn player_reactivated(env: &Env, player_id: u64, admin: &Address) {
         admin: admin.clone(),
         player_id,
     }
-    .emit(env);
+    .publish(env);
 }
 
 /// `caller` is the progress contract address performing the level sync.
@@ -234,7 +234,7 @@ pub fn player_level_synced(env: &Env, player_id: u64, caller: &Address, level: &
         player_id,
         level: level.clone(),
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn scout_verified(env: &Env, scout_id: u64, wallet: &Address) {
@@ -242,7 +242,7 @@ pub fn scout_verified(env: &Env, scout_id: u64, wallet: &Address) {
         wallet: wallet.clone(),
         scout_id,
     }
-    .emit(env);
+    .publish(env);
 }
 
 /// Emitted before `update_current_contract_wasm` — attributed to the old code version.
@@ -259,7 +259,7 @@ pub fn scout_deactivated(env: &Env, scout_id: u64, admin: &Address) {
         admin: admin.clone(),
         scout_id,
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn scout_reactivated(env: &Env, scout_id: u64, admin: &Address) {
@@ -267,7 +267,7 @@ pub fn scout_reactivated(env: &Env, scout_id: u64, admin: &Address) {
         admin: admin.clone(),
         scout_id,
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn admin_transfer_proposed(env: &Env, old_admin: &Address, new_admin: &Address) {
@@ -275,7 +275,7 @@ pub fn admin_transfer_proposed(env: &Env, old_admin: &Address, new_admin: &Addre
         old_admin: old_admin.clone(),
         new_admin: new_admin.clone(),
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn admin_transferred(env: &Env, old_admin: &Address, new_admin: &Address) {
@@ -283,7 +283,7 @@ pub fn admin_transferred(env: &Env, old_admin: &Address, new_admin: &Address) {
         old_admin: old_admin.clone(),
         new_admin: new_admin.clone(),
     }
-    .emit(env);
+    .publish(env);
 }
 
 /// topics: (event_name, admin)  data: (old_cooldown_secs, new_cooldown_secs)
@@ -308,7 +308,7 @@ pub fn migration_redeemed(
         profile_id,
         new_contract_hint: new_contract_hint.clone(),
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn wiring_updated(
@@ -324,7 +324,7 @@ pub fn wiring_updated(
         new_address: new_address.clone(),
         new_epoch,
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn player_record_restored(env: &Env, admin: &Address, player_id: u64) {
@@ -332,7 +332,7 @@ pub fn player_record_restored(env: &Env, admin: &Address, player_id: u64) {
         admin: admin.clone(),
         player_id,
     }
-    .emit(env);
+    .publish(env);
 }
 
 pub fn scout_record_restored(env: &Env, admin: &Address, scout_id: u64) {
@@ -340,7 +340,7 @@ pub fn scout_record_restored(env: &Env, admin: &Address, scout_id: u64) {
         admin: admin.clone(),
         scout_id,
     }
-    .emit(env);
+    .publish(env);
 }
 
 /// topics: (event_name, admin)  data: ()

@@ -150,9 +150,17 @@ pub enum ScoutAccessError {
 
     /// `revoke_evidence_access` attempted to revoke a grant that was already
     /// revoked (by admin or player).
+    ///
+    /// DEPRECATED: both revoke paths are now idempotent and return `Ok(())`
+    /// when the grant is already revoked (issue #1675). Retained to reserve
+    /// slot 42 and avoid reassignment.
     GrantAlreadyRevoked = 42,
     /// `revoke_evidence_access` caller's wallet does not own the `player_id`
     /// passed to the function, or the player is not registered.
+    ///
+    /// DEPRECATED: superseded by `NotPlayerOwner` (50) for ownership
+    /// mismatches and `RegistrationContractNotSet` (44) for unwired
+    /// registration (issue #1675). Retained to reserve slot 43.
     PlayerNotVerified = 43,
 
     /// Registration contract is not wired; Pro/Elite subscriptions require it.
@@ -173,6 +181,17 @@ pub enum ScoutAccessError {
     UnsupportedTokenDecimals = 48,
     /// Wiring target failed the `contract_kind`/`version` handshake (#1610).
     InvalidPeerContract = 49,
+
+    /// `revoke_evidence_access` caller's wallet does not own the `player_id`
+    /// passed to the function (ownership mismatch). Distinct from
+    /// `RegistrationContractNotSet` (44), which signals an unwired
+    /// registration contract (issue #1675).
+    NotPlayerOwner = 50,
+
+    /// Progress contract is not wired; `confirm_trial_offer` requires it to
+    /// advance the player's level. This is a deployment-wiring problem, not
+    /// invalid caller input (issue #1676).
+    ProgressContractNotSet = 51,
 }
 
 impl AdminError for ScoutAccessError {

@@ -849,3 +849,6 @@ Quick checklist:
 
 <!-- handsoff-issue-1666 -->
 - #1666: registration: add direct unit tests for canonicalize_region / canonicalize_position / canonicalize_nationality
+
+<!-- handsoff-issue-1674 -->
+- #1674: scout_access: remove the unreachable `effective_limit == 0` branch in get_player_access_grants
